@@ -20,11 +20,16 @@
   },
   "homepage": "https://github.com/Bu-okem/crag#readme",
   "dependencies": {
+    "@apidevtools/swagger-parser": "^12.0.0",
     "citty": "^0.1.6",
-    "consola": "^3.4.2"
+    "consola": "^3.4.2",
+    "js-yaml": "^4.1.0",
+    "postman-to-openapi": "^1.7.3"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.14",
+    "openapi-types": "^12.1.3",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
