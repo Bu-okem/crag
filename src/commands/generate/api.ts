@@ -7,6 +7,52 @@ const postmanToOpenApi = require('postman-to-openapi')
 
 // type operation = string | OpenAPIV2.Parameters | (OpenAPIV3.ParameterObject | OpenAPIV3_1.ReferenceObject)[] | (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[] | undefined;
 
+interface endPoint {
+    path: string,
+    method: string,
+    summary: string,
+    parameters: object | null,
+    requestBody: object,
+    responses: object,
+    tags: string[]
+}
+// replace(/^\/|\/$/g, '').replace(/\//g, '_').replace('-', '_')
+
+const fetcher_generator = function(endpoint: endPoint) {
+    switch(endpoint.method) {
+        case 'GET':
+            return `export const get_${endpoint.path.replace(/\//g, '_').replace(/-/g, '_')} = async () => {
+                const response = await fetch(\`${endpoint.path}\`, {
+                    method: '${endpoint.method}',
+                });
+                const data = await response.json();
+                return data;
+            }`;
+        case 'POST':
+            return `export const post_${endpoint.path.replace(/\//g, '_').replace(/-/g, '_')} = async (body) => {
+                const response = await fetch(\`${endpoint.path}\`, {
+                    method: '${endpoint.method}',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                return data;
+            }`;
+        default: 
+            return '';
+    }
+}
+
+const getData = async (url: string) => {
+    const response = await fetch(url, {
+        method: 'GET'
+    });
+    const data = await response.json();
+    return data;
+}
+
 
 
 export default defineCommand({
@@ -39,7 +85,7 @@ export default defineCommand({
            
             let api = await SwaggerParser.validate(openApiSpecObject);
 
-            let endPoints: any[] = [];
+            let endPoints: endPoint[] = [];
 
             for (const path in api.paths) {
                 const pathItem = api.paths[path];
@@ -70,7 +116,19 @@ export default defineCommand({
                 }
             }
 
-            console.log(JSON.stringify(endPoints, null, 2))
+            let fetchers: string[] = [];
+
+            for (const endPoint of endPoints) {
+                let func = fetcher_generator(endPoint as unknown as endPoint)
+               fetchers.push(func)
+            }
+
+            const fs = require('fs')
+            fs.writeFileSync('fetchers.ts', `${fetchers.join(';\n\n')}`);
+
+
+            // console.log(JSON.stringify(endPoints, null, 2))
+            // console.log(JSON.stringify(fetchers));
         } catch (err) {
             console.log(err)
         }
