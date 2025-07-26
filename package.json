@@ -27,6 +27,7 @@
     "postman-to-openapi": "^1.7.3"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "0.80.1",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.14",
     "openapi-types": "^12.1.3",
