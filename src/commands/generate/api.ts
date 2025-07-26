@@ -16,7 +16,6 @@ interface endPoint {
     responses: object,
     tags: string[]
 }
-// replace(/^\/|\/$/g, '').replace(/\//g, '_').replace('-', '_')
 
 const fetcher_generator = function(endpoint: endPoint) {
     switch(endpoint.method) {
@@ -40,9 +39,38 @@ const fetcher_generator = function(endpoint: endPoint) {
                 const data = await response.json();
                 return data;
             }`;
+        case 'PUT':
+        case 'PATCH':
+            return `export const put_${endpoint.path.replace(/\//g, '_').replace(/-/g, '_')} = async (body) => {
+                const response = await fetch(\`${endpoint.path}\`, {
+                    method: '${endpoint.method}',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                return data;
+            }`;
+        case 'DELETE':
+            return `export const delete_${endpoint.path.replace(/\//g, '_').replace(/-/g, '_')} = async () => {
+                const response = await fetch(\`${endpoint.path}\`, {
+                    method: '${endpoint.method}',
+                });
+                const data = await response.json();
+                return data;
+            }`
         default: 
             return '';
     }
+}
+
+const deleteData = async (url: string) => {
+    const response = await fetch(url, {
+        method: 'DELETE'
+    });
+    const data = await response.json();
+    return data;
 }
 
 const getData = async (url: string) => {
@@ -52,6 +80,20 @@ const getData = async (url: string) => {
     const data = await response.json();
     return data;
 }
+
+const putData = async (url: string, data: object) => {
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    return result;
+}
+
+
 
 
 
@@ -124,7 +166,7 @@ export default defineCommand({
             }
 
             const fs = require('fs')
-            fs.writeFileSync('fetchers.ts', `${fetchers.join(';\n\n')}`);
+            fs.writeFileSync(outputFile, `${fetchers.join(';\n\n')}`);
 
 
             // console.log(JSON.stringify(endPoints, null, 2))
