@@ -1,0 +1,16 @@
+{
+  "name": "test-simple-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joseph Owonvwon",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "crag": "workspace:*",
+    "@tanstack/react-query": "^5.83.0"
+  }
+}

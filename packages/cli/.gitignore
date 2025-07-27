@@ -1,4 +1,5 @@
-/.turbo
+/dist
+/bin
 
 # Node.js dependencies
 node_modules/

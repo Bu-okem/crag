@@ -1,0 +1,248 @@
+diff --git a/node_modules/postman-to-openapi/lib/index.js b/node_modules/postman-to-openapi/lib/index.js
+index 6c71012..d20d55f 100644
+--- a/node_modules/postman-to-openapi/lib/index.js
++++ b/node_modules/postman-to-openapi/lib/index.js
+@@ -5,7 +5,7 @@ const { dump } = require('js-yaml')
+ const { parseMdTable } = require('./md-utils')
+ const { version } = require('../package.json')
+ 
+-async function postmanToOpenApi (input, output, {
++async function postmanToOpenApi(input, output, {
+   info = {}, defaultTag = 'default', pathDepth = 0,
+   auth, servers, externalDocs = {}, folders = {}
+ } = {}) {
+@@ -56,19 +56,16 @@ async function postmanToOpenApi (input, output, {
+     ...parseTags(tags),
+     paths
+   }
+-  const openApiYml = dump(openApi, { skipInvalid: true })
+-  if (output != null) {
+-    await writeFile(output, openApiYml, 'utf8')
+-  }
+-  return openApiYml
++
++  return openApi
+ }
+ 
+ /* Calculate the tags for folders items based on the options */
+-function calculateFolderTag ({ tag, name }, { separator = ' > ', concat = true }) {
++function calculateFolderTag({ tag, name }, { separator = ' > ', concat = true }) {
+   return (tag && concat) ? `${tag}${separator}${name}` : name
+ }
+ 
+-function compileInfo (postmanJson, optsInfo) {
++function compileInfo(postmanJson, optsInfo) {
+   const { info: { name, description: desc }, variable = [] } = postmanJson
+   const ver = getVarValue(variable, 'version', '1.0.0')
+   const {
+@@ -85,37 +82,37 @@ function compileInfo (postmanJson, optsInfo) {
+   }
+ }
+ 
+-function parseLicense (variables, optsLicense = {}) {
++function parseLicense(variables, optsLicense = {}) {
+   const nameVar = getVarValue(variables, 'license.name')
+   const urlVar = getVarValue(variables, 'license.url')
+   const { name = nameVar, url = urlVar } = optsLicense
+   return (name != null) ? { license: { name, ...(url ? { url } : {}) } } : {}
+ }
+ 
+-function parseContact (variables, optsContact = {}) {
++function parseContact(variables, optsContact = {}) {
+   const nameVar = getVarValue(variables, 'contact.name')
+   const urlVar = getVarValue(variables, 'contact.url')
+   const emailVar = getVarValue(variables, 'contact.email')
+   const { name = nameVar, url = urlVar, email = emailVar } = optsContact
+   return [name, url, email].some(e => e != null)
+     ? {
+-        contact: {
+-          ...(name ? { name } : {}),
+-          ...(url ? { url } : {}),
+-          ...(email ? { email } : {})
+-        }
++      contact: {
++        ...(name ? { name } : {}),
++        ...(url ? { url } : {}),
++        ...(email ? { email } : {})
+       }
++    }
+     : {}
+ }
+ 
+-function parseExternalDocs (variables, optsExternalDocs) {
++function parseExternalDocs(variables, optsExternalDocs) {
+   const descriptionVar = getVarValue(variables, 'externalDocs.description')
+   const urlVar = getVarValue(variables, 'externalDocs.url')
+   const { description = descriptionVar, url = urlVar } = optsExternalDocs
+   return (url != null) ? { externalDocs: { url, ...(description ? { description } : {}) } } : {}
+ }
+ 
+-function parseBody (body = {}, method) {
++function parseBody(body = {}, method) {
+   // Swagger validation return an error if GET has body
+   if (['GET', 'DELETE'].includes(method)) return {}
+   const { mode, raw, options = { raw: { language: 'json' } } } = body
+@@ -124,11 +121,12 @@ function parseBody (body = {}, method) {
+     case 'raw': {
+       const { raw: { language } } = options
+       if (language === 'json') {
++
+         content = {
+           'application/json': {
+             schema: {
+               type: 'object',
+-              example: raw ? JSON.parse(raw) : ''
++              example: raw ? JSON.parse(JSON.stringify(raw)) : ''
+             }
+           }
+         }
+@@ -154,7 +152,7 @@ function parseBody (body = {}, method) {
+ }
+ 
+ /* Parse the Postman query and header and transform into OpenApi parameters */
+-function parseParameters (query = [], header, paths, paramsMeta = {}) {
++function parseParameters(query = [], header, paths, paramsMeta = {}) {
+   // parse Headers
+   let parameters = header.reduce(mapParameters('header'), [])
+   // parse Query
+@@ -165,7 +163,7 @@ function parseParameters (query = [], header, paths, paramsMeta = {}) {
+ }
+ 
+ /* Accumulator function for different types of parameters */
+-function mapParameters (type) {
++function mapParameters(type) {
+   return (parameters, { key, description, value }) => {
+     const required = /\[required\]/gi.test(description)
+     parameters.push({
+@@ -180,7 +178,7 @@ function mapParameters (type) {
+   }
+ }
+ 
+-function extractPathParameters (path, paramsMeta) {
++function extractPathParameters(path, paramsMeta) {
+   const matched = path.match(/{\s*[\w-]+\s*}/g) || []
+   return matched.map(match => {
+     const name = match.slice(1, -1)
+@@ -197,13 +195,13 @@ function extractPathParameters (path, paramsMeta) {
+   )
+ }
+ 
+-function getVarValue (variables, name, def = undefined) {
++function getVarValue(variables, name, def = undefined) {
+   const variable = variables.find(({ key }) => key === name)
+   return variable ? variable.value : def
+ }
+ 
+ /* calculate the type of a variable based on OPenApi types */
+-function inferType (value) {
++function inferType(value) {
+   if (/^\d+$/.test(value)) return 'integer'
+   if (/-?\d+\.\d+/.test(value)) return 'number'
+   if (/^(true|false)$/.test(value)) return 'boolean'
+@@ -211,7 +209,7 @@ function inferType (value) {
+ }
+ 
+ /* Calculate the global auth based on options and postman definition */
+-function parseAuth ({ auth }, optAuth) {
++function parseAuth({ auth }, optAuth) {
+   if (optAuth != null) {
+     return parseOptsAuth(optAuth)
+   }
+@@ -219,27 +217,27 @@ function parseAuth ({ auth }, optAuth) {
+ }
+ 
+ /* Parse a postman auth definition */
+-function parsePostmanAuth (postmanAuth = {}) {
++function parsePostmanAuth(postmanAuth = {}) {
+   const { type } = postmanAuth
+   return (type != null)
+     ? {
+-        components: {
+-          securitySchemes: {
+-            [type + 'Auth']: {
+-              type: 'http',
+-              scheme: type
+-            }
++      components: {
++        securitySchemes: {
++          [type + 'Auth']: {
++            type: 'http',
++            scheme: type
+           }
+-        },
+-        security: [{
+-          [type + 'Auth']: []
+-        }]
+-      }
++        }
++      },
++      security: [{
++        [type + 'Auth']: []
++      }]
++    }
+     : {}
+ }
+ 
+ /* Parse a options global auth */
+-function parseOptsAuth (optAuth) {
++function parseOptsAuth(optAuth) {
+   const securitySchemes = {}
+   const security = []
+   for (const [secName, secDefinition] of Object.entries(optAuth)) {
+@@ -260,19 +258,19 @@ function parseOptsAuth (optAuth) {
+ }
+ 
+ /* From the path array compose the real path for OpenApi specs */
+-function calculatePath (paths = [], pathDepth) {
++function calculatePath(paths = [], pathDepth) {
+   paths = paths.slice(pathDepth) // path depth
+   // replace repeated '{' and '}' chars
+   return '/' + paths.map(path => path.replace(/([{}])\1+/g, '$1'))
+     .join('/')
+ }
+ 
+-function calculateDomains (protocol, hosts, port) {
++function calculateDomains(protocol, hosts, port) {
+   return protocol + '://' + hosts.join('.') + (port ? `:${port}` : '')
+ }
+ 
+ /** Support for collection V2 */
+-function scrapeURL (url) {
++function scrapeURL(url) {
+   if (typeof url === 'string' || url instanceof String) {
+     const objUrl = new URL(url)
+     return {
+@@ -288,7 +286,7 @@ function scrapeURL (url) {
+ }
+ 
+ /* Parse domains from operations or options */
+-function parseServers (domains, serversOpts) {
++function parseServers(domains, serversOpts) {
+   let servers
+   if (serversOpts != null) {
+     servers = serversOpts.map(({ url, description }) => ({ url, description }))
+@@ -299,13 +297,13 @@ function parseServers (domains, serversOpts) {
+ }
+ 
+ /* Transform a object of tags in an array of tags */
+-function parseTags (tagsObj) {
++function parseTags(tagsObj) {
+   const tags = Object.entries(tagsObj)
+     .map(([name, description]) => ({ name, description }))
+   return (tags.length > 0) ? { tags } : {}
+ }
+ 
+-function descriptionParse (description) {
++function descriptionParse(description) {
+   if (description == null) return { description }
+   const splitDesc = description.split(/# postman-to-openapi/gi)
+   if (splitDesc.length === 1) return { description }
+@@ -315,7 +313,7 @@ function descriptionParse (description) {
+   }
+ }
+ 
+-function parseResponse (events = []) {
++function parseResponse(events = []) {
+   let status = 200
+   const test = events.filter(event => event.listen === 'test')
+   if (test.length > 0) {
