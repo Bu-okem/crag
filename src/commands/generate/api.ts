@@ -1,46 +1,77 @@
 import { defineCommand } from "citty";
+import { Match, pipe, Schema } from "effect";
 import { createClient } from '@hey-api/openapi-ts';
-import yaml from 'js-yaml';
-
-const postmanToOpenApi = require('postman-to-openapi')
+// @ts-expect-error
+import postmanToOpenApi from 'postman-to-openapi';
+import { config, configFile } from "~/config";
+import { type InputEntry, input } from "~/schema";
+import { rootLogger } from "~/logger";
 
 export default defineCommand({
-    meta: {
-        name: "api",
-        description: "Generate fetchers and hooks from Postman collection"
+  meta: {
+    name: "api",
+    description: "Generate fetchers and hooks from Postman collection"
+  },
+  args: {
+    path: {
+      type: 'string',
+      description: 'API Spec location',
+      required: false
     },
-    args: {
-        path: {
-          type: 'string',
-          description: 'Api location',
-          required: true
-        },
-        destination: {
-            type: 'string',
-            description: 'OpenAPI location',
-            required: true
-        }
-    },
-    async run({ args }) {
-        const postmanCollection = args.path;
-        const outputFile = args.destination;
-
-        try {
-            // Save the result in a file
-            // const result = await postmanToOpenApi(postmanCollection, outputFile, { defaultTag: 'General' })
-            
-            const openApiSpecString = await postmanToOpenApi(postmanCollection, null, { defaultTag: 'General' });
-            const openApiSpecObject = yaml.load(openApiSpecString) as {};
-
-            createClient({
-                input: openApiSpecObject,
-                output: 'src/client',
-            });
-
-            // console.log(JSON.stringify(endPoints, null, 2))
-            // console.log(JSON.stringify(fetchers));
-        } catch (err) {
-            console.log(err)
-        }
+    destination: {
+      type: 'string',
+      description: 'OpenAPI location',
+      required: false
     }
+  },
+  async setup({ args }) {
+    rootLogger.debug("$$", config);
+    const inputs = config.input;
+
+    for (const input_entry of inputs) {
+      const input_parsed = InputImpl.normalize(input_entry);
+      const output_dir = args.destination ?? config.output;
+
+      try {
+        const p_input = input_parsed.type === "postman" ?
+          await postmanToOpenAPISpecs(input_parsed.path)
+          : input_parsed.path
+
+        await createClient({
+          input: p_input,
+          output: output_dir,
+          configFile: configFile
+        });
+
+        rootLogger.success("🎉 Generated API client");
+      } catch (err) {
+        console.log(err)
+      }
+    }
+  }
 })
+
+async function postmanToOpenAPISpecs(path_to_collection: string) {
+  try {
+    return await postmanToOpenApi(path_to_collection, null, { defaultTag: 'General' });
+  } catch (error) {
+    throw new Error("Error generating OpenAPI spec from Postman Collection", { cause: error });
+  }
+}
+
+const InputImpl = {
+  normalize(input_entry: InputEntry) {
+    const encode = Schema.encodeSync(input);
+
+    return pipe(
+      Match.value(input_entry),
+      Match.when(Match.string, (path) => {
+        return encode({
+          type: "openapi",
+          path: path
+        })
+      }),
+      Match.orElse((e) => encode(e)),
+    )
+  },
+}

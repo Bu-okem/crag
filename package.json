@@ -1,12 +1,18 @@
 {
   "name": "crag",
-  "version": "1.0.0",
+  "version": "0.0.1",
+  "type": "module",
   "description": "A CLI tool that helps generate code from API specs",
   "main": "index.js",
+  "bin": {
+    "crag": "bin/crag.js"
+  },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/cli.ts",
-    "start": "node dist/cli.js"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "run": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "postinstall": "npx patch-package"
   },
   "repository": {
     "type": "git",
@@ -21,17 +27,20 @@
   "homepage": "https://github.com/Bu-okem/crag#readme",
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.0.0",
+    "c12": "^3.1.0",
     "citty": "^0.1.6",
     "consola": "^3.4.2",
-    "js-yaml": "^4.1.0",
-    "postman-to-openapi": "^1.7.3"
+    "effect": "^3.17.2",
+    "postman-to-openapi": "^1.7.3",
+    "std-env": "^3.9.0"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.80.1",
-    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.14",
     "openapi-types": "^12.1.3",
+    "tsup": "^8.5.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
-  }
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
 }
