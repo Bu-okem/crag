@@ -1,5 +1,3 @@
-/.turbo
-
 # Node.js dependencies
 node_modules/
 npm-debug.log*
@@ -35,3 +33,6 @@ logs
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Codegen output directory
+src/client
