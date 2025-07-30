@@ -1,0 +1,914 @@
+openapi: 3.0.0
+info:
+  title: LMS ENDPOINTS
+  description: >-
+    This document provides a comprehensive overview of all API endpoints that
+    drive the functionality of the **Schullex Learning Management System (LMS)**
+    and offers guidance on their utilization.
+  version: 1.0.0
+servers:
+  - url: undefined://{{staging-env}}
+  - url: https://api.unsplash.com
+  - url: https://bzfoynxq2c.execute-api.us-east-1.amazonaws.com
+tags:
+  - name: ADMIN ENDPOINTS
+    description: >-
+      This contains all endpoints related to administrative operations on the
+      learning management system.
+  - name: ADMIN ENDPOINTS > cohort
+  - name: ADMIN ENDPOINTS > cohort > learners
+  - name: ADMIN ENDPOINTS > cohort > cohort administraton
+  - name: ADMIN ENDPOINTS > curriculum
+    description: The curriculum endpoints for the administrative user
+  - name: ADMIN ENDPOINTS > curriculum > learning weeks
+  - name: ADMIN ENDPOINTS > curriculum > learning topics
+  - name: ADMIN ENDPOINTS > access
+  - name: ADMIN ENDPOINTS > organization branding
+  - name: LEARNER ENDPOINTS
+  - name: Resources Api
+    description: >-
+      This document offers a detailed overview of the Learning Resources
+      endpoint, outlining its functionality and providing guidance on how to
+      effectively utilize it within the system.
+  - name: Resources Api > Bookmarks Endpoints
+    description: >-
+      This document provides an in-depth overview of the Bookmarks endpoint,
+      detailing its functionality and offering guidance on optimal utilization
+      within the system.
+  - name: Resources Api > Learning materials endpoints
+  - name: general [for both admin and learner]
+    description: These endpoints are for both Admin and learners access control
+paths:
+  /access/register-learner:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > cohort > learners
+      summary: learner registration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                last_name: Tochi
+                first_name: Nwachukwu
+                email: tnwachukwu@schulltech.com
+                cohort: cohort2
+                course: devops
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/get-learners:
+    get:
+      tags:
+        - LEARNER ENDPOINTS
+      summary: get learner details
+      parameters:
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: cohort1
+        - name: user_id
+          in: query
+          schema:
+            type: string
+          example: tnwachukwu@schulltech.com
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/search-learners:
+    get:
+      tags:
+        - ADMIN ENDPOINTS > cohort > learners
+      summary: search learners in a cohort
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: cohort1
+        - name: search_term
+          in: query
+          schema:
+            type: string
+          example: tochi
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/cohorts:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > cohort > cohort administraton
+      summary: create a new cohort
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                cohort_title: cohort1
+                zoom_link: >-
+                  https://us02web.zoom.us/j/85350254956?pwd=cGlqUy95RXEzUEloMS9tVyt0bnBqQT09
+                start_date: 12/3/2023
+                end_date: 12/3/2023
+                created_by: Adenike
+                slack_channel_link: >-
+                  https://app.slack.com/client/T05F2BUTLN9/C05EQPGP7KR?geocode=en-in
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    get:
+      tags:
+        - ADMIN ENDPOINTS > cohort > cohort administraton
+      summary: get all cohorts
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - ADMIN ENDPOINTS > cohort > cohort administraton
+      summary: edit a cohort's details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                update_object:
+                  created_by: Tochi
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: cohort_id
+          in: query
+          schema:
+            type: string
+          example: cohort2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/curriculum/week:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning weeks
+      summary: create a learning week
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                cohort_id: cohort2
+                week: Week1
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    get:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning weeks
+      summary: get all learning weeks
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: cohort_id
+          in: query
+          schema:
+            type: string
+          example: cohort2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning weeks
+      summary: delete a learning week
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: cohort_id
+          in: query
+          schema:
+            type: string
+          example: cohort2
+        - name: week_id
+          in: query
+          schema:
+            type: string
+          example: week7
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/curriculum/topic:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning topics
+      summary: create a new topic
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                cohort_id: cohort2
+                week_id: week2
+                topic_title: lambda
+                created_by: Nike
+                lesson_date: 12/4/56
+                lesson_time: '12'
+                class_slides:
+                  - pdf_1
+                  - pdf_2
+                thumbnail_link: ''
+                video_link: ''
+                instructor: Bobohhhh
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    get:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning topics
+      summary: get topics per week
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: week_id
+          in: query
+          schema:
+            type: string
+          example: week2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning topics
+      summary: edit a topic
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                topic_id: lambda
+                update_object:
+                  video_link: https://www.youtube.com/watch?v=Rl8lVKypaOk&t=6s
+                  instructor: Nikolas tesla
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: week_id
+          in: query
+          schema:
+            type: string
+          example: week2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning topics
+      summary: delete a topic
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: week_id
+          in: query
+          schema:
+            type: string
+          example: week2
+        - name: topic_id
+          in: query
+          schema:
+            type: string
+          example: lambda
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /search/photos:
+    get:
+      tags:
+        - ADMIN ENDPOINTS > curriculum > learning topics
+      summary: Thumbnail generator
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: query
+          in: query
+          schema:
+            type: string
+          example: gradient background
+        - name: client_id
+          in: query
+          schema:
+            type: string
+          example: wOF2bvO7PRmtviRBNjvPeQMRP_1VNYHScekRuBwBD40
+        - name: color
+          in: query
+          schema:
+            type: string
+          example: purple
+        - name: orientation
+          in: query
+          schema:
+            type: string
+          example: landscape
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/admin-login:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > access
+      summary: admin login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: tnwachukwu@schulltech.com
+                password: '12345'
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/register-admin:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > access
+      summary: register an admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                first_name: Tochi
+                last_name: Nwachukwu
+                email: designedbytochi@gmail.com
+                course: DEVOPS
+                access_level: tutor
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/modify-access:
+    post:
+      tags:
+        - ADMIN ENDPOINTS > access
+      summary: modify portal access
+      requestBody:
+        content: {}
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: cohort1
+        - name: user_id
+          in: query
+          schema:
+            type: string
+          example: tnwachukwu@schulltech.com
+        - name: grant_access
+          in: query
+          schema:
+            type: boolean
+          example: 'false'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/org-branding:
+    get:
+      tags:
+        - ADMIN ENDPOINTS > organization branding
+      summary: get branding
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+        - name: org_name
+          in: query
+          schema:
+            type: string
+          example: schull
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - ADMIN ENDPOINTS > organization branding
+      summary: add organization branding
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                org_logo: org logo
+                org_name: champs
+                accent_color: '#QW3776'
+                primary_color: black
+                register_image: hello
+                login_image: ''
+                sign_up_image: ''
+                company_logo: no logo
+                default_thumbnnails: ''
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - ADMIN ENDPOINTS > organization branding
+      summary: edit organization branding
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                update_object:
+                  company_logo: A good logo
+                  primary_color: black
+                  register_image: no picture displayed
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/login:
+    post:
+      tags:
+        - LEARNER ENDPOINTS
+      summary: learner login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: tnwachukwu@schulltech.com
+                password: '12345'
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /health:
+    get:
+      tags:
+        - LEARNER ENDPOINTS
+      summary: Health Check
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/bookmarks:
+    delete:
+      tags:
+        - Resources Api > Bookmarks Endpoints
+      summary: Delete a bookmark
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+          example: tnwachukwu@schulltech.com
+        - name: resource_id
+          in: query
+          schema:
+            type: string
+          example: afefdbc4-3;elr;elr;lba0-40a5-9f8c-7d1682fd93fljjjlj4
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    get:
+      tags:
+        - Resources Api > Bookmarks Endpoints
+      summary: Get All Bookmarks
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+        - name: resources_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Resources Api > Bookmarks Endpoints
+      summary: Add new bookmark
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_id: tnwachukwu@schulltech.com
+                resource_id: afefdbc4-3;elr;elr;lba0-40a5-9f8c-7d1682fd93fljjjlj4
+                title: Devops 3
+                publisher: Garose Reels
+                category: pdf
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/search-bookmarks:
+    get:
+      tags:
+        - Resources Api > Bookmarks Endpoints
+      summary: Search bookmark
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+          example: weezy@hotmail.com
+        - name: searchTerm
+          in: query
+          schema:
+            type: string
+          example: dev
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/recorded-classes:
+    get:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: Get all recorded classes by cohort
+      parameters:
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: COHORT3
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: upload recorded classes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                title: Launching LAMP Web Server on AWS EC2
+                publisher: Jide
+                cohort: COHORT1
+                resource_url: >-
+                  https://us02web.zoom.us/rec/share/nUcV1Vb_0j74Dy_IBxb_OSxUwGANpETUFbAoCl3CTirwyFZtnQ5u3kCLHiIpXAjG.bmoUQ1Kto_9s1FXu
+                resource_password: +Q=f2hq$
+                thumbnail: >-
+                  https://www.ibexa.co/var/site/storage/images/_aliases/social_network_image/0/2/8/7/67820-1-eng-GB/IMPORT_ShpIivHow-to-optimize-performance-of-the-LAMP-stack-with-eZ-Part-1.jpg
+                video_description: >-
+                  A LAMP stack is a toolbox for website and web app development.
+                  It consists of four open-source technologies: Linux, Apache,
+                  MySQL, and PHP. Developers use LAMP stacks to create, host,
+                  and maintain web content. This powerful bundle is behind many
+                  popular websites you use today!
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/search-recorded-classes:
+    get:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: Search recorded classes in a cohort
+      parameters:
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: COHORT1
+        - name: searchTerm
+          in: query
+          schema:
+            type: string
+          example: server
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/search-resources:
+    get:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: Search resources in a cohort
+      parameters:
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: COHORT3
+        - name: searchTerm
+          in: query
+          schema:
+            type: string
+          example: github
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /prod/courses:
+    get:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: Get Linux Self-Paced Course
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/resources:
+    get:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: Get All Resources by Cohort
+      parameters:
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: COHORT3
+        - name: ORG_ID
+          in: query
+          schema:
+            type: string
+          example: geans_edge
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: upload class resources
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                title: Introduction to AWS
+                publisher: Gbenga
+                data_type: PDF
+                cohort: COHORT3
+                resource_url: https://resource-vault.s3.amazonaws.com/Stage2/AWS.pdf
+                thumbnail: >-
+                  https://images.unsplash.com/photo-1651418745598-2b4c274f61be?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OHx8YXdzfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=800&q=60
+      parameters:
+        - name: cohort
+          in: query
+          schema:
+            type: string
+          example: COHORT3
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /learning/health:
+    get:
+      tags:
+        - Resources Api > Learning materials endpoints
+      summary: learning microservices health check
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/forgot-password:
+    post:
+      tags:
+        - general [for both admin and learner]
+      summary: forgot password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_id: tnwachukwu@schulltech.com
+                domain: portal.schull.io
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/update-password:
+    patch:
+      tags:
+        - general [for both admin and learner]
+      summary: update password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_id: tnwachukwu@schulltech.com
+                new_password: '12345'
+                confirmed_password: '12345'
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /access/update-profile:
+    patch:
+      tags:
+        - general [for both admin and learner]
+      summary: update any profile detail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_id: tnwachukwu@schulltech.com
+                cohort: cohort1
+                update_object:
+                  gh_url: https://github.com/Tochi-Nwachukwu
+                  ln_url: https://www.linkedin.com/in/tochinwachukwu/
+                  cv_url: https://www.linkedin.com/in/tochinwachukwu/
+      parameters:
+        - name: org_id
+          in: query
+          schema:
+            type: string
+          example: SCHULLEX
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

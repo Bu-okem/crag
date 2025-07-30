@@ -3,6 +3,10 @@
     {
       "type": "postman",
       "path": "./storage/collection.json"
+    },
+    {
+      "type": "openapi",
+      "path": "./storage/collection.yml"
     }
   ],
   "output": "./src/client",
