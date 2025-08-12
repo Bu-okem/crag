@@ -10,6 +10,10 @@
     }
   ],
   "output": "./src/client",
+  "react": {
+    "enabled": true,
+    "output": "./src/hooks"
+  },
   "plugins": [
     "@tanstack/react-query"
   ]

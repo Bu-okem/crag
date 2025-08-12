@@ -1,11 +1,12 @@
 import { defineCommand } from "citty";
 import { Match, pipe, Schema } from "effect";
 import { createClient } from '@hey-api/openapi-ts';
-// @ts-expect-error
 import postmanToOpenApi from 'postman-to-openapi';
 import { config, configFile } from "~/config";
 import { type InputEntry, input } from "~/schema";
 import { rootLogger } from "~/logger";
+
+import { generateHooks } from "~/lib/hooks-generator";
 
 export default defineCommand({
   meta: {
@@ -44,6 +45,10 @@ export default defineCommand({
         });
 
         rootLogger.success("🎉 Generated API client");
+
+        await generateHooks(output_dir, `${output_dir}/hooks`);
+        rootLogger.success("🎉 Generated React hooks");
+
       } catch (err) {
         console.log(err)
       }
@@ -53,6 +58,7 @@ export default defineCommand({
 
 async function postmanToOpenAPISpecs(path_to_collection: string) {
   try {
+    // @ts-expect-error
     return await postmanToOpenApi(path_to_collection, null, { defaultTag: 'General' });
   } catch (error) {
     throw new Error("Error generating OpenAPI spec from Postman Collection", { cause: error });
