@@ -50,6 +50,7 @@ export default defineCommand({
         const generateClient = !args['hooks-only'];
         const generateHooks = !args['client-only'];
 
+        /*
         const plugins = [];
         
         if (generateClient) {
@@ -59,6 +60,7 @@ export default defineCommand({
         if (generateHooks) {
           plugins.push('@tanstack/react-query');
         }
+          */
 
         await createClient({
           input: p_input,
