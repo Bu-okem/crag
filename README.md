@@ -81,6 +81,54 @@ export default {
 }
 ```
 
+## Using the client
+
+The generated client is imported and configured like this:
+
+```typescript
+import { client } from './client.gen';
+
+// Configure the client
+client.setConfig({
+  baseUrl: 'https://api.example.com',
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+```
+
+#### Direct API Calls
+
+```typescript
+import { getAccessCohorts, postAccessLogin } from './sdk.gen';
+
+// GET request
+const cohorts = await getAccessCohorts();
+
+// POST request with body
+const loginResult = await postAccessLogin({
+  body: {
+    email: 'user@example.com',
+    password: 'password123'
+  }
+});
+
+// Request with path parameters
+const learner = await getAccessGetLearners({
+  path: { learner_id: '123' }
+});
+
+// Request with query parameters
+const searchResults = await getAccessSearchLearners({
+  query: { 
+    cohort_id: 'abc',
+    search: 'john' 
+  }
+});
+```
+
+You can call the generated API functions directly:
+
 ## Using the hooks
 
 #### 1. Query Options (for GET endpoints)
