@@ -7,5 +7,5 @@ export default defineCommand({
     },
     subCommands: {
         api: () => import("./api").then(m => m.default),
-    }
+      }
 })

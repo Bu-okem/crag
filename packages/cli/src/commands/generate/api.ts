@@ -6,8 +6,6 @@ import { config, configFile } from "~/config";
 import { type InputEntry, input } from "~/schema";
 import { rootLogger } from "~/logger";
 
-import { generateHooks } from "~/lib/hooks-generator";
-
 export default defineCommand({
   meta: {
     name: "api",
@@ -21,8 +19,18 @@ export default defineCommand({
     },
     destination: {
       type: 'string',
-      description: 'OpenAPI location',
+      description: 'Output directory',
       required: false
+    },
+    'client-only': {
+      type: 'boolean',
+      description: 'Generate only TypeScript client (no hooks)',
+      default: false
+    },
+    'hooks-only': {
+      type: 'boolean',
+      description: 'Generate only React Query hooks (no client)',
+      default: false
     }
   },
   async setup({ args }) {
@@ -36,25 +44,43 @@ export default defineCommand({
       try {
         const p_input = input_parsed.type === "postman" ?
           await postmanToOpenAPISpecs(input_parsed.path)
-          : input_parsed.path
+          : input_parsed.path;
+
+        // Determine what to generate
+        const generateClient = !args['hooks-only'];
+        const generateHooks = !args['client-only'];
+
+        const plugins = [];
+        
+        if (generateClient) {
+          plugins.push('@hey-api/typescript');
+        }
+
+        if (generateHooks) {
+          plugins.push('@tanstack/react-query');
+        }
 
         await createClient({
           input: p_input,
           output: output_dir,
+          plugins: generateHooks ? ['@hey-api/typescript', '@tanstack/react-query', '@hey-api/sdk'] : ['@hey-api/typescript', '@hey-api/sdk'],
           configFile: configFile
         });
 
-        rootLogger.success("🎉 Generated API client");
-
-        await generateHooks(output_dir, `${output_dir}/hooks`);
-        rootLogger.success("🎉 Generated React hooks");
+        if (generateClient && generateHooks) {
+          rootLogger.success("🎉 Generated API client and React hooks");
+        } else if (generateClient) {
+          rootLogger.success("🎉 Generated API client");
+        } else {
+          rootLogger.success("🎉 Generated React hooks");
+        }
 
       } catch (err) {
-        console.log(err)
+        console.log(err);
       }
     }
   }
-})
+});
 
 async function postmanToOpenAPISpecs(path_to_collection: string) {
   try {
