@@ -13,13 +13,13 @@ A CLI tool that generates TypeScript API clients and React Query hooks from Open
 
 ```bash
 # Using npm
-npm install -g crag
+npm install crag
 
 # Using yarn
-yarn global add crag
+yarn add crag
 
 # Using pnpm
-pnpm add -g crag
+pnpm add crag
 ```
 
 ## Usage
