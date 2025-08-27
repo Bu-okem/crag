@@ -50,23 +50,21 @@ export default defineCommand({
         const generateClient = !args['hooks-only'];
         const generateHooks = !args['client-only'];
 
-        /*
-        const plugins = [];
-        
-        if (generateClient) {
-          plugins.push('@hey-api/typescript');
-        }
-
-        if (generateHooks) {
-          plugins.push('@tanstack/react-query');
-        }
-          */
 
         await createClient({
           input: p_input,
           output: output_dir,
-          plugins: generateHooks ? ['@hey-api/typescript', '@tanstack/react-query', '@hey-api/sdk'] : ['@hey-api/typescript', '@hey-api/sdk'],
-          configFile: configFile
+          // @ts-expect-error
+          plugins: [
+            ...(generateClient ? ['@hey-api/typescript', '@hey-api/sdk'] : []),
+            ...(generateHooks ? ['@tanstack/react-query'] : [])
+          ],
+          configFile: configFile,
+          ...(args['hooks-only'] && {
+            client: false,
+            types: false,
+            services: false
+          })
         });
 
         if (generateClient && generateHooks) {
