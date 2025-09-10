@@ -6,7 +6,7 @@
   "description": "A CLI tool that helps generate code from API specs",
   "main": "dist/cli.js",
   "bin": {
-    "crag": "bin/crag.js"
+    "crag": "./bin/crag.js"
   },
   "scripts": {
     "build": "tsup",
