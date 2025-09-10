@@ -13,16 +13,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: "pnpm"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
 
       - name: Install dependencies
         run: pnpm install
@@ -115,7 +115,8 @@ jobs:
         if: steps.version-check.outputs.should_publish == 'true'
         run: |
           echo "🚀 Publishing ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }} to NPM..."
-          npm publish --access public
+          # Use pnpm to publish
+          pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
