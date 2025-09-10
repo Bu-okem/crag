@@ -15,8 +15,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: latest
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -54,8 +52,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: latest
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -84,25 +80,19 @@ jobs:
           PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
           PACKAGE_VERSION="${{ steps.package-info.outputs.version }}"
 
-          # Check if this version already exists on NPM
           if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version &>/dev/null; then
             echo "Version $PACKAGE_VERSION of $PACKAGE_NAME already exists on NPM"
             echo "should_publish=false" >> $GITHUB_OUTPUT
-            echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "Version $PACKAGE_VERSION of $PACKAGE_NAME does not exist on NPM"
             echo "should_publish=true" >> $GITHUB_OUTPUT
-            echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Skip publishing (version exists)
         if: steps.version-check.outputs.should_publish == 'false'
         run: |
           echo "⚠️ Skipping publish: Version ${{ steps.package-info.outputs.version }} already exists on NPM"
-          echo "To publish a new version:"
-          echo "1. Update the version in package.json"
-          echo "2. Commit and push the changes"
-          echo "3. Or run: pnpm version patch && git push --follow-tags"
+          echo "To publish a new version, update the version in package.json and push the changes."
 
       - name: Test CLI before publishing
         if: steps.version-check.outputs.should_publish == 'true'
@@ -113,10 +103,7 @@ jobs:
 
       - name: Publish to NPM
         if: steps.version-check.outputs.should_publish == 'true'
-        run: |
-          echo "🚀 Publishing ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }} to NPM..."
-          # Use pnpm to publish
-          pnpm publish --access public --no-git-checks
+        run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -151,7 +138,7 @@ jobs:
             - 📦 [NPM Package](https://www.npmjs.com/package/crag)
             - 📖 [Documentation](https://github.com/Bu-okem/crag#readme)
           draft: false
-          prerelease: false
+          prerlease: false
 
       - name: Success notification
         if: steps.version-check.outputs.should_publish == 'true'
@@ -159,6 +146,3 @@ jobs:
           echo "✅ Successfully published crag@${{ steps.package-info.outputs.version }}"
           echo "📦 NPM: https://www.npmjs.com/package/crag"
           echo "🏷️ GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.package-info.outputs.version }}"
-          echo ""
-          echo "Users can now install with:"
-          echo "npm install -g crag@${{ steps.package-info.outputs.version }}"
