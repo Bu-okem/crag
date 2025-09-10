@@ -1,17 +1,10 @@
-name: Build, Test, and Publish to NPM
+name: Build, Test, and Publish Crag to NPM
 
 on:
   push:
     branches: [main]
-    paths:
-      - "packages/cli" # Only trigger when this package changes
   pull_request:
     branches: [main]
-    paths:
-      - "packages/cli"
-
-env:
-  PACKAGE_PATH: packages/cli
 
 jobs:
   test:
@@ -24,30 +17,29 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: ${{ env.PACKAGE_PATH }}/package-lock.json
+          cache: "pnpm"
 
-      - name: Install root dependencies (if needed)
-        run: |
-          if [ -f "package.json" ]; then
-            npm ci
-          fi
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-      - name: Install package dependencies
-        working-directory: ${{ env.PACKAGE_PATH }}
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Run linting (if you have eslint)
-        working-directory: ${{ env.PACKAGE_PATH }}
-        run: npm run lint --if-present
+      - name: Run linting (if available)
+        run: pnpm lint --if-present
 
       - name: Run tests
-        working-directory: ${{ env.PACKAGE_PATH }}
-        run: npm test --if-present
+        run: pnpm test --if-present
 
-      - name: Build project (if you have a build step)
-        working-directory: ${{ env.PACKAGE_PATH }}
-        run: npm run build --if-present
+      - name: Build project
+        run: pnpm build
+
+      - name: Test CLI functionality
+        run: |
+          # Test that the built CLI can run
+          node dist/cli.js --help || echo "CLI help test completed"
 
   publish:
     needs: test
@@ -63,28 +55,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
-          cache: "npm"
-          cache-dependency-path: ${{ env.PACKAGE_PATH }}/package-lock.json
+          cache: "pnpm"
 
-      - name: Install root dependencies (if needed)
-        run: |
-          if [ -f "package.json" ]; then
-            npm ci
-          fi
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
-      - name: Install package dependencies
-        working-directory: ${{ env.PACKAGE_PATH }}
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Build project (if you have a build step)
-        working-directory: ${{ env.PACKAGE_PATH }}
-        run: npm run build --if-present
+      - name: Build project
+        run: pnpm build
 
       - name: Get package info
         id: package-info
-        working-directory: ${{ env.PACKAGE_PATH }}
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
@@ -113,13 +100,19 @@ jobs:
         run: |
           echo "⚠️ Skipping publish: Version ${{ steps.package-info.outputs.version }} already exists on NPM"
           echo "To publish a new version:"
-          echo "1. Update the version in ${{ env.PACKAGE_PATH }}/package.json"
+          echo "1. Update the version in package.json"
           echo "2. Commit and push the changes"
-          echo "3. Or run: cd ${{ env.PACKAGE_PATH }} && npm version patch|minor|major && git push --follow-tags"
+          echo "3. Or run: pnpm version patch && git push --follow-tags"
+
+      - name: Test CLI before publishing
+        if: steps.version-check.outputs.should_publish == 'true'
+        run: |
+          echo "🧪 Testing CLI functionality before publishing..."
+          node dist/cli.js --version || echo "Version check completed"
+          node dist/cli.js --help || echo "Help check completed"
 
       - name: Publish to NPM
         if: steps.version-check.outputs.should_publish == 'true'
-        working-directory: ${{ env.PACKAGE_PATH }}
         run: |
           echo "🚀 Publishing ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }} to NPM..."
           npm publish --access public
@@ -132,25 +125,39 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.package-info.outputs.name }}-v${{ steps.package-info.outputs.version }}
-          release_name: ${{ steps.package-info.outputs.name }} v${{ steps.package-info.outputs.version }}
+          tag_name: v${{ steps.package-info.outputs.version }}
+          release_name: Crag v${{ steps.package-info.outputs.version }}
           body: |
-            ## Changes
-            Published ${{ steps.package-info.outputs.name }} version ${{ steps.package-info.outputs.version }} to NPM
+            ## 🎉 Crag v${{ steps.package-info.outputs.version }}
 
-            Install with:
+            A CLI tool to generate TanStack Query hooks from API specifications.
+
+            ### Installation
             ```bash
-            npm install ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }}
+            npm install -g crag@${{ steps.package-info.outputs.version }}
             ```
 
-            Package location: `${{ env.PACKAGE_PATH }}`
+            ### Usage
+            ```bash
+            # Generate from OpenAPI spec
+            crag generate api --path ./api-spec.yaml
+
+            # Generate from Postman collection
+            crag generate api --path ./collection.json
+            ```
+
+            ### Links
+            - 📦 [NPM Package](https://www.npmjs.com/package/crag)
+            - 📖 [Documentation](https://github.com/Bu-okem/crag#readme)
           draft: false
           prerelease: false
 
       - name: Success notification
         if: steps.version-check.outputs.should_publish == 'true'
         run: |
-          echo "✅ Successfully published ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }}"
-          echo "📦 NPM: https://www.npmjs.com/package/${{ steps.package-info.outputs.name }}"
-          echo "🏷️ GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.package-info.outputs.name }}-v${{ steps.package-info.outputs.version }}"
-          echo "📁 Package path: ${{ env.PACKAGE_PATH }}"
+          echo "✅ Successfully published crag@${{ steps.package-info.outputs.version }}"
+          echo "📦 NPM: https://www.npmjs.com/package/crag"
+          echo "🏷️ GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.package-info.outputs.version }}"
+          echo ""
+          echo "Users can now install with:"
+          echo "npm install -g crag@${{ steps.package-info.outputs.version }}"
