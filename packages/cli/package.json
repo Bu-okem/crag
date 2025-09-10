@@ -1,6 +1,7 @@
 {
   "name": "crag",
   "version": "1.0.0",
+  "private": false,
   "type": "module",
   "description": "A CLI tool that helps generate code from API specs",
   "main": "index.js",
