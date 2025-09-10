@@ -1,0 +1,156 @@
+name: Build, Test, and Publish to NPM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/cli" # Only trigger when this package changes
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/cli"
+
+env:
+  PACKAGE_PATH: packages/cli
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ${{ env.PACKAGE_PATH }}/package-lock.json
+
+      - name: Install root dependencies (if needed)
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          fi
+
+      - name: Install package dependencies
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: npm ci
+
+      - name: Run linting (if you have eslint)
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: npm run lint --if-present
+
+      - name: Run tests
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: npm test --if-present
+
+      - name: Build project (if you have a build step)
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: npm run build --if-present
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: ${{ env.PACKAGE_PATH }}/package-lock.json
+
+      - name: Install root dependencies (if needed)
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          fi
+
+      - name: Install package dependencies
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: npm ci
+
+      - name: Build project (if you have a build step)
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: npm run build --if-present
+
+      - name: Get package info
+        id: package-info
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if version exists on NPM
+        id: version-check
+        run: |
+          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
+          PACKAGE_VERSION="${{ steps.package-info.outputs.version }}"
+
+          # Check if this version already exists on NPM
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version &>/dev/null; then
+            echo "Version $PACKAGE_VERSION of $PACKAGE_NAME already exists on NPM"
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $PACKAGE_VERSION of $PACKAGE_NAME does not exist on NPM"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip publishing (version exists)
+        if: steps.version-check.outputs.should_publish == 'false'
+        run: |
+          echo "⚠️ Skipping publish: Version ${{ steps.package-info.outputs.version }} already exists on NPM"
+          echo "To publish a new version:"
+          echo "1. Update the version in ${{ env.PACKAGE_PATH }}/package.json"
+          echo "2. Commit and push the changes"
+          echo "3. Or run: cd ${{ env.PACKAGE_PATH }} && npm version patch|minor|major && git push --follow-tags"
+
+      - name: Publish to NPM
+        if: steps.version-check.outputs.should_publish == 'true'
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: |
+          echo "🚀 Publishing ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }} to NPM..."
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.version-check.outputs.should_publish == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package-info.outputs.name }}-v${{ steps.package-info.outputs.version }}
+          release_name: ${{ steps.package-info.outputs.name }} v${{ steps.package-info.outputs.version }}
+          body: |
+            ## Changes
+            Published ${{ steps.package-info.outputs.name }} version ${{ steps.package-info.outputs.version }} to NPM
+
+            Install with:
+            ```bash
+            npm install ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }}
+            ```
+
+            Package location: `${{ env.PACKAGE_PATH }}`
+          draft: false
+          prerelease: false
+
+      - name: Success notification
+        if: steps.version-check.outputs.should_publish == 'true'
+        run: |
+          echo "✅ Successfully published ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }}"
+          echo "📦 NPM: https://www.npmjs.com/package/${{ steps.package-info.outputs.name }}"
+          echo "🏷️ GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.package-info.outputs.name }}-v${{ steps.package-info.outputs.version }}"
+          echo "📁 Package path: ${{ env.PACKAGE_PATH }}"
